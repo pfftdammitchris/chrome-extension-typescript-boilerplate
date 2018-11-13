@@ -1,3 +1,7 @@
+# Snake: Google Chrome Extension
+
+---
+
 # Features:
 
 ## Spankbang
