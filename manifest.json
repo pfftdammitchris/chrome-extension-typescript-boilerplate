@@ -1,0 +1,58 @@
+{
+  "version": "1.1",
+  "manifest_version": 2,
+  "name": "Snake",
+  "description": "A tool to grab the best quality video link of a supported web site through any of their pages.",
+  "author": "Christopher Tran",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "bookmarks",
+    "unlimitedStorage",
+    "clipboardRead",
+    "clipboardWrite",
+    "contextMenus",
+    "cookies",
+    "downloads",
+    "history",
+    "management",
+    "commands",
+    "browsingData",
+    "sessions",
+    "storage",
+    "nativeMessaging",
+    "notifications"
+  ],
+  "commands": {
+    "spankbang-video": {
+      "suggested_key": {
+        "default": "Ctrl+Space"
+      },
+      "description": "Detect the highest quality video on spankbang.com web page and copy to clipboard."
+    }
+  },
+  "icons": {
+    "16": "./resources/contextmenu-icon.png",
+    "48": "./resources/contextmenu-icon48x48.png"
+  },
+  "browser_action": {
+    "default_title": "You are a snake. Don't forget.",
+    "default_icon": "./resources/contextmenu-icon48x48.png"
+  },
+  "background": {
+    "page": "background.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "exclude_matches": [],
+      "js": ["content.js"],
+      "css": ["contentStyles.css"]
+    }
+  ],
+  "options_page": "options.html",
+  "options_ui": {
+    "chrome_style": true,
+    "page": "options.html"
+  }
+}
