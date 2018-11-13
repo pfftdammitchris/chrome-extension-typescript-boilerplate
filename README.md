@@ -2,7 +2,7 @@
 
 ## Spankbang
 
-- Detects and retrieves the highest quality link possible in a page of a video, and copies it to clipboard.
+- Detects and retrieves the highest quality link possible in a video page by copying the URL to your clipboard.
 
 ### Shortcuts
 Keys | Description
