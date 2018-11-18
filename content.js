@@ -5,71 +5,217 @@
   Manifest permissions: 
     https://developer.chrome.com/extensions/declare_permissions
 
-  content-scripts cannot use chrome. API's except:
+  content-scripts cannot use chrome API's except:
     chrome.extension, chrome.i18n, chrome.runtime, and chrome.storage
+
+  iziModal documentation:
+    http://izimodal.marcelodolce.com/
 */
 
-// Listen for incoming queries after we're connected
-chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
-  if (msg.web === 'spankbang') {
-    let url
+const modal = (function() {
+  this.elem = document.createElement('div')
+  this.elem.id = 'snake-modal'
+  document.body.appendChild(this.elem)
 
-    const html = document.querySelector('body').innerHTML
-    const start = html.search(/var cover_image/)
-    const end = html.indexOf('</script>', start)
+  this.modal = $('#snake-modal').iziModal({
+    headerColor: '#373546',
+    background: '#1f1d2b',
+    radius: 8,
+    width: '90%',
+    zindex: 99999,
+    onClosed: function() {
+      const body = document.querySelector('body')
+      body.classList.remove('body-fixed')
+    },
+    appendTo: false,
+    appendToOverlay: false,
+  })
 
-    /*
-      Received the query lines as an array
-      Ex: [
-          'var stream_shd  = 0;',
-          'var stream_id  = '2pto1';',
-          'var stream_url_720p  = 'https://vcdn2.spankbang.com/4/5/4564081-720p.mp4?st=lu3rf1jiGJypqzYJWuqttg&e=1542147928;'
-          ...etc
-        ]
-    */
-    const queryLines = html
-      .slice(start, end)
-      .replace(/(var|\')/gi, '')
-      .split(/;/)
-      .map((str) => str.trim())
-
-    // Final object with key + values { stream_u_id: '43423', stream_sd: '1', ...etc }
-    const queries = queryLines.reduce((acc, str) => {
-      const key = str.slice(0, str.search(/ /)).trim()
-      const value = str.slice(str.search(/=/) + 1).trim()
-      if (!(key in acc)) acc[key] = value
-      return acc
-    }, {})
-
-    if (msg.query === 'get-highest') {
-      url = getHighest(queries)
-      sendResponse(url)
-    }
+  function open(options) {
+    if (options.title) this.modal.iziModal('setTitle', options.title)
+    if (options.message) this.modal.iziModal('setSubtitle', options.message)
+    this.modal.iziModal('open')
+    const body = document.querySelector('body')
+    body.classList.add('body-fixed')
   }
+
+  function setInnerHtml(html) {
+    this.elem.innerHTML = html
+  }
+
+  return {
+    open: function(options) {
+      if (!options) return false
+      open(options)
+    },
+    setInnerHtml: function(html) {
+      if (!html) return false
+      setInnerHtml(html)
+    },
+  }
+})()
+
+const port = chrome.runtime.connect({ name: 'snake' })
+
+chrome.runtime.onConnect.addListener((_port) => {
+  // Listen for incoming background queries after we're connected
+  _port.onMessage.addListener((msg) => {
+    console.log(msg)
+    if (msg.query) {
+      handleQuery({ query: msg.query, options: msg })
+    }
+    if (msg.modal) {
+      modal.open(msg.modal)
+    }
+  })
+  _port.onDisconnect.addListener((result) => {
+    console.log('Disconnected: ', result)
+  })
 })
 
-/** Grabs the highest available quality url and returns it
- * @param { object } queries - Key/value pairs where keys are the key and the values are the links
- */
-function getHighest(queries) {
-  let url
-  // Best to lowest, in descending order
-  const qualities = [
-    'stream_url_4k',
-    'stream_url_1080p',
-    'stream_url_720p',
-    'stream_url_480p',
-    'stream_url_320p',
-    'stream_url_240p',
-  ]
+// Handles a given query and returns a result back to the caller
+function handleQuery({ query, options }) {
+  switch (query) {
+    case 'get-html':
+      callback(getHtml(options))
+      break
+    case 'query-options':
+      break
+    case 'galleria':
+      initGalleria(options)
+      break
+    case 'galleria-display':
+      displayGalleria(options)
+      break
+    default:
+      return null
+  }
 
-  for (let i = 0; i < qualities.length; i++) {
-    const quality = qualities[i]
-    if (!!queries[quality]) {
-      url = queries[quality]
-      return queries[quality]
+  function getHtml(options) {
+    let selector = 'body'
+    if (options.selector) selector = options.selector
+    return document.querySelector(selector).innerHTML
+  }
+
+  function initGalleria(options) {
+    const selector = options.selector
+    const webApp = options.webApp
+    if (webApp === 'spankbang') {
+      const videoNodes = document.getElementsByClassName('video-item')
+      const videoPages = []
+      for (let i = 0; i < videoNodes.length; i++) {
+        const node = videoNodes[i]
+        const nodeChildren = node.childNodes
+        const data = {}
+
+        for (let x = 0; x < nodeChildren.length; x++) {
+          const nodeChild = nodeChildren[x]
+          if (nodeChild.tagName === 'A') {
+            data.pageUrl = nodeChild.href
+          }
+          if (/inf/i.test(nodeChild.className)) {
+            data.videoTitle = nodeChild.textContent
+          }
+          if (nodeChild.tagName === 'UL') {
+            data.datePosted = nodeChild.children[0].textContent
+            data.views = nodeChild.children[1].textContent
+            data.thumbsUp = nodeChild.children[2].textContent
+          }
+        }
+        videoPages.push(data)
+      }
+      port.postMessage({
+        webApp: 'spankbang',
+        query: 'video-pages',
+        videoPages,
+        url: window.location.href,
+      })
     }
   }
 
-  if (!url) return null
+  function download() {
+    console.log('You clicked me!')
+  }
+
+  function displayGalleria(options) {
+    const { data } = options
+    const elem = document.createElement('div')
+    for (let i = 0; i < data.length; i++) {
+      const d = data[i]
+      const childElem = document.createElement('div')
+      const titleElem = document.createElement('h4')
+      const downloadElem = document.createElement('div')
+      const thumbnailsElem = document.createElement('div')
+      titleElem.innerHTML = `
+        <a class="video-page video-title" href="${d.pageUrl}" target="_blank">
+          ${d.videoTitle || 'N/A'} - ${d.datePosted || 'N/A'}
+        </a>
+      `
+      titleElem.className += 'video-title video-page'
+      downloadElem.innerHTML = 'Download'
+      downloadElem.className += 'download'
+      downloadElem.onclick = download
+      thumbnailsElem.innerHTML = `
+        <div style="display:flex;flex-wrap:wrap;margin-bottom:30px;">
+        ${d.thumbnails.map(
+          (thumb) => `
+          <div style="flex:1 0 18%;border:1px solid #8a3ab9;">
+            <img style="width:100%;height:100%;object-fit:cover;" src="${
+              thumb.thumbnail
+            }" />
+          </div>
+          `,
+        )}
+        </div>
+      `
+      childElem.appendChild(titleElem)
+      childElem.appendChild(downloadElem)
+      childElem.appendChild(thumbnailsElem)
+      elem.appendChild(childElem)
+    }
+    modal.setInnerHtml(`
+      <style>
+        .wrapper {
+          position: relative;
+          padding: 12px;
+          overflow: scroll;
+          height: 100%;
+        }
+        .video-title {
+          cursor: pointer;
+          font-size: 1.4em;
+          font-weight: bold;
+          marginBottom: 15px;
+          color: #0070c2;
+          transition: all 0.5s ease-out;
+        }
+        .video-title:hover {
+          color: #F8A31E;
+        }
+        .download {
+          color: #63C17B;
+          transition: all 0.5s ease-out;
+          cursor: pointer;
+          font-size: 1.25em;
+          font-weight: bold;
+          margin: 6px 0;
+        }
+        .download:hover {
+          color: #398FCD;
+        }
+        .body-fixed {
+          overflow: hidden;
+          position: fixed;
+        }
+      </style>
+      <div class="wrapper">
+        ${elem.innerHTML}
+      </div>
+    `)
+    modal.open({
+      title: 'Thumbnails from videos',
+      message:
+        'Each section includes 1 video and 10 thumbnails corresponding to the video.',
+    })
+  }
 }

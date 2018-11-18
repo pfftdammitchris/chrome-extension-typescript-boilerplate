@@ -1,66 +1,60 @@
+/*
+  vids:
+    Sets a web app to a website and makes functions available tailored to a supported website.
+*/
+
 const vids = (function() {
   let tabId, query, web
 
   function setTab(id) {
-    if (!id) {
-      throw new Error('setTab() needs to be passed an id argument.')
-    }
     tabId = id
   }
 
   /** Sets the query
    * @param { string } id - Query
    */
-  function setQuery(id, webApp) {
-    if (!id) {
-      throw new Error('setQuery() needs to be passed an id argument.')
-    }
+  function setQuery(q, webApp) {
     if (webApp) web = webApp
-
-    switch (id) {
-      case 'highest':
-        query = 'get-highest'
-        break
-      default:
-        query = null
-    }
+    query = q
   }
 
   function setWeb(webApp) {
-    if (!webApp) {
-      throw new Error('setWeb() needs to be passed a webApp argument.')
-    }
     web = webApp
   }
 
-  /** Sends a message to the content script's listener.
-   * @param { object } additionalArgs - (Optional) additional arguments passed to the options parameter for tabs.sendMessage().
-   * @param { function } callback - (Optional) callback invoked after tabs.sendMessage() completes
+  /** Downloads a video by running through background process document object
+   * @param { function } callback - (Optional) callback invoked after downloading completes
    */
-  function download(additionalArgs, callback) {
-    if (typeof additionalArgs === 'function') {
-      callback = additionalArgs
-      additionalArgs = Object.create(additionalArgs)
+  function download(callback) {
+    switch (web) {
+      case 'spankbang':
+        return spankbang.downloadVideo({ callback })
+        break
+      default:
+        return null
     }
-    chrome.tabs.sendMessage(tabId, { query, web, ...additionalArgs }, callback)
+    return this
   }
 
   return {
-    setTab: function(...args) {
-      setTab(...args)
-      return vids
+    setTab: function(id) {
+      if (!id) throw new Error('setTab() needs to be passed an id argument.')
+      setTab(id)
+      return this
     },
-    setQuery: function(...args) {
-      setQuery(...args)
-      return vids
+    setQuery: function(q, webApp) {
+      if (!q) throw new Error('setQuery() needs to be passed a query argument.')
+      setQuery(q, webApp)
+      return this
     },
-    setWeb: function(...args) {
-      setWeb(...args)
-      return vids
+    setWeb: function(webApp) {
+      if (!webApp)
+        throw new Error('setWeb() needs to be passed a webApp argument.')
+      setWeb(webApp)
+      return this
     },
-    download: function(...args) {
-      download(...args)
-      return vids
+    download: function(callback) {
+      return download.call(this, callback)
     },
   }
 })()

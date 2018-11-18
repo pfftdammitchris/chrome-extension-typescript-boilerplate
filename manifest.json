@@ -24,7 +24,13 @@
     "notifications"
   ],
   "commands": {
-    "spankbang-video": {
+    "galleria": {
+      "suggested_key": {
+        "default": "Ctrl+Z"
+      },
+      "description": "Display a window to select the type of query."
+    },
+    "snatch-video": {
       "suggested_key": {
         "default": "Ctrl+Space"
       },
@@ -46,8 +52,12 @@
     {
       "matches": ["<all_urls>"],
       "exclude_matches": [],
-      "js": ["content.js"],
-      "css": ["contentStyles.css"]
+      "js": [
+        "libraries/jquery-3.3.1.min.js",
+        "libraries/iziModal.min.js",
+        "content.js"
+      ],
+      "css": ["libraries/iziModal.min.css", "styles.css"]
     }
   ],
   "options_page": "options.html",
