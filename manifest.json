@@ -28,12 +28,6 @@
         "default": "Ctrl+Z"
       },
       "description": "Display a window to select the type of query."
-    },
-    "snatch-video": {
-      "suggested_key": {
-        "default": "Ctrl+Space"
-      },
-      "description": "Detect the highest quality video on spankbang.com web page and copy to clipboard."
     }
   },
   "icons": {
