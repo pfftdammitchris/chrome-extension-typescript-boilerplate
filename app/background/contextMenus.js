@@ -14,15 +14,15 @@ chrome.runtime.onInstalled.addListener((port) => {
   ]
 
   chrome.contextMenus.create({
-    title: 'Snake',
-    id: 'snake',
+    title: 'ChromezContext',
+    id: 'chromez',
     contexts: [...contexts, 'browser_action'],
   })
 
   chrome.contextMenus.create({
-    title: 'SB video download',
-    id: 'highest',
-    parentId: 'snake',
+    title: 'Inside ChromezContext Testing',
+    id: 'cctest',
+    parentId: 'chromez',
     contexts,
   })
 })
@@ -32,15 +32,7 @@ chrome.runtime.onInstalled.addListener((port) => {
 -------------------------------------------------------- */
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const isSpankbang = /spankbang.com/i.test(tab.url)
-  const incognito = !!tab.incognito
-
-  if (isSpankbang) {
-    fn.downloadVideo({
-      tabId: tab.id,
-      query: info.menuItemId,
-      webApp: 'spankbang',
-      callback: (url) => console.log(`%c${url}`, 'color:blue'),
-    })
-  }
+  console.log('addListener info arg for contextMenu: ', info)
+  console.log('addListener tab arg for contextMenu: ', tab)
+  const isIncognito = !!tab.incognito
 })

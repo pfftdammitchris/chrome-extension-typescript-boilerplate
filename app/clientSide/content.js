@@ -16,7 +16,7 @@ const makeUiPort = function createUiPort() {
   // Connect and listen to the background
   chrome.runtime.onConnect.addListener((port) => {
     const onMsg = (msg) => {
-      console.log(msg)
+      console.log('Message from background:', msg)
     }
     const onDisconnect = (result) => {
       console.log('Disconnected: ', result)

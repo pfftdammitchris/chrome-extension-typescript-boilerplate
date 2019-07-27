@@ -2,16 +2,14 @@ const port = (function() {
   const _store = {
     port: null, // Used to send .postMessage calls from background side
     clientPort: null, // Used to receive .postMessage calls from client side
-    contentListener: null,
     tab: null,
-    listeningUrl: null, // Listening URL = tab url from client
   }
 
   // Opens the listening connection from client side
   chrome.runtime.onConnect.addListener((clientPort) => {
     _store.clientPort = clientPort
     _store.clientPort.onMessage.addListener((msg) => {
-      console.log(msg)
+      console.log('Message from client side: ', msg)
     })
   })
 
@@ -33,9 +31,6 @@ const port = (function() {
         //    make it the current active tab
         else if (_store.tab.id !== activeTab.id) {
           _store.tab = activeTab
-        }
-        if (_store.listeningUrl !== activeTab.url) {
-          _store.listeningUrl = activeTab.url
         }
       })
     }
@@ -60,7 +55,7 @@ const port = (function() {
     set(key, value) {
       if (!key) {
         return console.warn(
-          `Warning! You tried to set "${key}" on the store but it was not valid`,
+          `Warning! You tried to set "${key}" on the store but the key is invalid`,
         )
       } else {
         _store[key] = value
@@ -72,11 +67,11 @@ const port = (function() {
   return {
     store: storeHelpers,
     postMessage(msg) {
-      if (_store.port != undefined) {
+      if (_store.port) {
         _store.port.postMessage(msg)
       } else {
         console.warn(
-          `Warning: Tried to invoke postMessage with "${msg}" but port was undefined`,
+          `Warning: Tried to invoke postMessage with "${msg}" but the port instance is invalid`,
         )
       }
       return this
