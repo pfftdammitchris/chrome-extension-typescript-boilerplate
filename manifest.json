@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "manifest_version": 2,
-  "name": "chromez",
+  "name": "Chromez",
   "description": "v/p extractor",
   "author": "Christopher Tran",
   "permissions": [
@@ -23,43 +23,62 @@
     "notifications"
   ],
   "commands": {
-    "galleria": {
+    "download-instagram-photo": {
       "suggested_key": {
         "default": "Ctrl+Z"
       },
-      "description": "Display a window to select the type of query."
+      "description": "Downloads the best quality photo that it can find"
+    },
+    "download-instagram-video": {
+      "suggested_key": {
+        "default": "Ctrl+Z"
+      },
+      "description": "Downloads the best quality video that it can find"
     }
   },
   "icons": {
-    "16": "./resources/contextmenu-icon.png",
-    "48": "./resources/contextmenu-icon48x48.png"
+    "16": "app/resources/contextmenu-icon.png",
+    "48": "app/resources/contextmenu-icon48x48.png"
   },
   "browser_action": {
     "default_title": "Chromez",
-    "default_icon": "./resources/contextmenu-icon48x48.png"
+    "default_icon": "app/resources/contextmenu-icon48x48.png",
+    "default_popup": "app/popup/popup.html"
   },
   "background": {
-    "page": "src/background/background.html"
+    "scripts": [
+      "app/utils.js",
+      "app/background.js",
+      "app/contextMenus/contextMenus.js",
+      "app/tabs/tabs.js",
+      "app/modules/instagram.js"
+    ],
+    "persistent": false
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["libraries/jquery-3.3.1.min.js", "src/clientSide/content.js"],
-      "css": ["src/clientSide/styles.css"]
+      "js": [
+        "app/libraries/jquery-3.4.1.min.js",
+        "app/libraries/jquery.modal.min.js",
+        "app/utils.js",
+        "app/contentScripts/contentScripts.js",
+        "app/contentScripts/storage.js"
+      ],
+      "css": [
+        "app/libraries/jquery.modal.min.css",
+        "app/contentScripts/styles.css"
+      ]
     },
     {
-      "matches": ["*instagram.com/*"],
-      "js": [
-        "libraries/jquery-3.3.1.min.js",
-        "src/apps/instagram/instagram.js",
-        "src/apps/instagram/utils.js"
-      ],
-      "css": ["src/apps/instagram/styles.css"]
+      "matches": ["*://www.instagram.com/*"],
+      "js": ["app/contentScripts/modules/instagram/instagram.js"],
+      "css": ["app/contentScripts/modules/instagram/styles.css"]
     }
   ],
-  "options_page": "src/background/options.html",
+  "options_page": "app/options/options.html",
   "options_ui": {
     "chrome_style": true,
-    "page": "src/background/options.html"
+    "page": "app/options/options.html"
   }
 }
