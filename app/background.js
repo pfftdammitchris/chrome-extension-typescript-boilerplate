@@ -1,3 +1,8 @@
+/*
+  Downloads API:
+    https://developer.chrome.com/extensions/downloads#method-download
+*/
+
 const portApi = (function() {
   const _store = {}
 
@@ -55,6 +60,11 @@ chrome.runtime.onInstalled.addListener(() => {
     {
       title: 'View photos',
       id: 'instagram-post-photos',
+      contexts: [...contexts, 'browser_action'],
+    },
+    {
+      title: 'Download disabled video',
+      id: 'pornhub-download-disabled-video',
       contexts: [...contexts, 'browser_action'],
     },
     {

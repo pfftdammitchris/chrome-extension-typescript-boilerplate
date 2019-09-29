@@ -51,7 +51,8 @@
       "app/background.js",
       "app/contextMenus/contextMenus.js",
       "app/tabs/tabs.js",
-      "app/modules/instagram.js"
+      "app/modules/instagram.js",
+      "app/modules/pornhub.js"
     ],
     "persistent": false
   },
@@ -71,9 +72,19 @@
       ]
     },
     {
-      "matches": ["*://www.instagram.com/*"],
-      "js": ["app/contentScripts/modules/instagram/instagram.js"],
-      "css": ["app/contentScripts/modules/instagram/styles.css"]
+      "matches": [
+        "*://www.instagram.com/*",
+        "*://www.pornhub.com/*",
+        "*://www.pornhubpremium.com/*"
+      ],
+      "js": [
+        "app/contentScripts/modules/instagram/instagram.js",
+        "app/contentScripts/modules/pornhub/pornhub.js"
+      ],
+      "css": [
+        "app/contentScripts/modules/instagram/styles.css",
+        "app/contentScripts/modules/pornhub/styles.css"
+      ]
     }
   ],
   "options_page": "app/options/options.html",

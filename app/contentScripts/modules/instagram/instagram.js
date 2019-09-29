@@ -24,16 +24,7 @@ const instagram = (function() {
     return arr.slice(arr.length - 1)
   }
 
-  function _normalizePhoto(photo) {
-    return {
-      src: photo.src,
-      width: photo.config_width,
-      height: photo.config_height,
-    }
-  }
-
   return {
-    // Returns a JSON object
     getPhotosFromPost($html) {
       if (!$html) {
         return console.warn(
@@ -55,35 +46,29 @@ const instagram = (function() {
         )
       }
       // console.log(sharedData)
-      const items = sharedData.entry_data.PostPage
-      const photos = []
-
-      items.forEach(({ graphql } = {}, index) => {
-        if (!graphql) {
-          return console.warn(`No data available for index ${index}`)
-        }
-        const data = graphql.shortcode_media
-        const isMultiple = data.edge_sidecar_to_children !== undefined
-        const photoObj = {
-          owner: data.owner,
-          id: data.id,
-          shortcode: data.shortcode,
-          isVideo: data.is_video,
-          location: data.location,
-          photos: isMultiple
-            ? data.edge_sidecar_to_children.edges.map(
-                ({ node }) => _getLast(node.display_resources)[0],
-              )
-            : [{ src: data.display_url }],
-          likes: data.edge_media_preview_like,
-          comments: data.edge_media_preview_comment.edges.map(({ node }) => ({
-            [node.owner.username]: node,
-          })),
-          timestampTaken: data.taken_at_timestamp,
-        }
-        photos.push(photoObj)
-      })
-      return photos[0]
+      const { graphql } = sharedData.entry_data.PostPage[0]
+      if (!graphql) {
+        return console.warn(`No data available for index ${index}`)
+      }
+      const data = graphql.shortcode_media
+      const isMultiple = data.edge_sidecar_to_children !== undefined
+      return {
+        owner: data.owner,
+        id: data.id,
+        shortcode: data.shortcode,
+        isVideo: data.is_video,
+        location: data.location,
+        photos: isMultiple
+          ? data.edge_sidecar_to_children.edges.map(
+              ({ node }) => _getLast(node.display_resources)[0],
+            )
+          : [{ src: data.display_url }],
+        likes: data.edge_media_preview_like,
+        comments: data.edge_media_preview_comment.edges.map(({ node }) => ({
+          [node.owner.username]: node,
+        })),
+        timestampTaken: data.taken_at_timestamp,
+      }
     },
   }
 })()

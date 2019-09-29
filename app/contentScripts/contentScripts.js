@@ -12,6 +12,10 @@
     http://izimodal.marcelodolce.com/
 */
 
+// ACTION TYPE CONSTANTS
+const INSTAGRAM_POST_PHOTOS = 'instagram-post-photos'
+const PORNHUB_DOWNLOAD_DISABLED_VIDEO = 'pornhub-download-disabled-video'
+
 const modal = (function() {
   const elem = document.createElement('div')
   elem.style.margin = 'auto'
@@ -23,8 +27,16 @@ const modal = (function() {
     getElem() {
       return $elem
     },
-    open({ fadeDuration = 250, ...options } = {}) {
-      $elem.modal({ fadeDuration, ...options })
+    open(...args) {
+      let options
+      // The caller wants to pass in data to overwrite the modal content
+      if (isString(args[0])) {
+        $elem.html(args[0])
+        options = args[1]
+      } else {
+        options = args[0]
+      }
+      $elem.modal({ fadeDuration: 250, ...options })
     },
     close() {
       $elem.html('')
@@ -51,7 +63,7 @@ chrome.runtime.onConnect.addListener((port) => {
 
 chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
   switch (action.type) {
-    case 'instagram-post-photos': {
+    case INSTAGRAM_POST_PHOTOS: {
       if (!action.linkUrl) {
         return console.warn(
           `You tried to fetch an instagram post's photos but no link was given. Action: ${action}`,
@@ -71,6 +83,33 @@ chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
           )
           modalElem.html(imgs)
           modal.open()
+        },
+      })
+    }
+    case PORNHUB_DOWNLOAD_DISABLED_VIDEO: {
+      $.ajax({
+        url: action.linkUrl,
+        success: (html) => {
+          const $html = $(html)
+          const items = pornhub.getMediaLinks($html)
+          const modalElem = modal.getElem()
+          console.log(items)
+
+          if (!items) {
+            window.alert(
+              'Could not find any links to this video. Check console',
+            )
+            console.log('items: ', items)
+            console.log('dispatched action: ', action)
+          }
+          // const imgs = photos.map(
+          //   ({ src }) =>
+          //     `<div style="margin-bottom:10px">
+          //       <img src="${src}" width="100%" height="auto" style="object-fit:cover;" />
+          //     </div>`,
+          // )
+          // modalElem.html(imgs)
+          // modal.open()
         },
       })
     }

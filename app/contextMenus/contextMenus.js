@@ -37,13 +37,18 @@ function createContextMenus(contextMenus) {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   console.log(`Context menu onClick info parameter: `, info)
   console.log(`Context menu onClick tab parameter: `, tab)
-  const site = getSite(tab.url)
   // instagram.onContextMenuClick(info, tab)
   getActiveTab((activeTab) => {
     switch (info.menuItemId) {
+      // INSTAGRAM
+      // Must be on their profile page
       case 'instagram-post-photos':
+        dispatch(activeTab.id, { type: 'instagram-post-photos', ...info })
+      // PORNHUB
+      // Must be on the video page
+      case 'pornhub-download-disabled-video':
         dispatch(activeTab.id, {
-          type: 'instagram-post-photos',
+          type: 'pornhub-download-disabled-video',
           ...info,
         })
       default:

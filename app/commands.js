@@ -1,3 +1,10 @@
+/*
+  Documentation:
+    https://developer.chrome.com/extensions/commands
+  Bookmarks:
+    https://developer.chrome.com/extensions/bookmarks
+*/
+
 chrome.commands.onCommand.addListener((command) => {
   // Send message to client side to display modal
   if (command === 'query-options') {
