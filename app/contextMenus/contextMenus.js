@@ -46,9 +46,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         dispatch(activeTab.id, { type: 'instagram-post-photos', ...info })
       // PORNHUB
       // Must be on the video page
-      case 'pornhub-download-disabled-video':
+      case 'pornhub-get-video-links':
         dispatch(activeTab.id, {
-          type: 'pornhub-download-disabled-video',
+          type: 'pornhub-get-video-links',
           ...info,
         })
       default:

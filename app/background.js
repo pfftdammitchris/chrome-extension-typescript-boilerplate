@@ -56,6 +56,7 @@ chrome.runtime.onInstalled.addListener(() => {
     'video',
     'audio',
   ]
+  // onClicking these in the UI will send to contextMenu handlers
   const menus = [
     {
       title: 'View photos',
@@ -63,13 +64,8 @@ chrome.runtime.onInstalled.addListener(() => {
       contexts: [...contexts, 'browser_action'],
     },
     {
-      title: 'Download disabled video',
-      id: 'pornhub-download-disabled-video',
-      contexts: [...contexts, 'browser_action'],
-    },
-    {
-      title: '(stub)',
-      id: '(stub)',
+      title: 'Get media links',
+      id: 'pornhub-get-video-links',
       contexts: [...contexts, 'browser_action'],
     },
   ]
@@ -77,7 +73,9 @@ chrome.runtime.onInstalled.addListener(() => {
 })
 
 // Invoked when we connected to the client side
-chrome.runtime.onConnect.addListener((port) => {})
+chrome.runtime.onConnect.addListener((port) => {
+  //
+})
 
 chrome.runtime.onMessage.addListener((msg) => {
   console.log(msg)

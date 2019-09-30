@@ -14,7 +14,7 @@
 
 // ACTION TYPE CONSTANTS
 const INSTAGRAM_POST_PHOTOS = 'instagram-post-photos'
-const PORNHUB_DOWNLOAD_DISABLED_VIDEO = 'pornhub-download-disabled-video'
+const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
 
 const modal = (function() {
   const elem = document.createElement('div')
@@ -55,6 +55,7 @@ const makeChromez = function createChromez() {
 
 // Invoked when we connected to the background
 chrome.runtime.onConnect.addListener((port) => {
+  console.log(`connected: ${port}`)
   const { name, disconnect, postMessage, sender } = port
   port.onDisconnect.addListener((result) => {
     console.log('Disconnected: ', result)
@@ -86,30 +87,134 @@ chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
         },
       })
     }
-    case PORNHUB_DOWNLOAD_DISABLED_VIDEO: {
+    case PORNHUB_GET_VIDEO_LINKS: {
+      function addQuality(obj, item) {
+        if (Array.isArray(item.quality)) {
+          item.quality.forEach((quality) => {
+            if (!(quality in obj)) {
+              obj[quality] = item
+            }
+          })
+        } else {
+          if (!(item.quality in acc)) {
+            obj[quality] = item
+          }
+        }
+        return obj
+      }
+
       $.ajax({
         url: action.linkUrl,
         success: (html) => {
+          let modalElem, nodes
           const $html = $(html)
-          const items = pornhub.getMediaLinks($html)
-          const modalElem = modal.getElem()
-          console.log(items)
+          const title = pornhub.getTitle()
+          const thumbnail = pornhub.getThumbnail()
+          let items = pornhub.getMediaLinks($html)
+          console.log(JSON.stringify(items))
 
+          // Failed
           if (!items) {
             window.alert(
-              'Could not find any links to this video. Check console',
+              `The media links could not be extracted. Reason: ${error.message}`,
             )
             console.log('items: ', items)
             console.log('dispatched action: ', action)
+            return
           }
-          // const imgs = photos.map(
-          //   ({ src }) =>
-          //     `<div style="margin-bottom:10px">
-          //       <img src="${src}" width="100%" height="auto" style="object-fit:cover;" />
-          //     </div>`,
-          // )
-          // modalElem.html(imgs)
-          // modal.open()
+          // Success
+          else {
+            function formatReducer(acc, item) {
+              if (!acc[item.format]) {
+                acc[item.format] = {}
+              }
+              return acc
+            }
+            function qualitiesReducer(acc, item) {
+              if (!acc[item.format]) {
+                formatReducer(acc, item)
+              }
+              if (Array.isArray(item.quality)) {
+                item.quality.forEach((quality) => {
+                  if (!Array.isArray(acc[item.format][quality])) {
+                    acc[item.format][quality] = [item]
+                  } else {
+                    acc[item.format][quality].push(item)
+                  }
+                })
+              } else {
+                if (!Array.isArray(acc[item.format][item.quality])) {
+                  acc[item.format][item.quality] = [item]
+                } else {
+                  acc[item.format][item.quality].push(item)
+                }
+              }
+              return acc
+            }
+            // const formatsWithQualities = formats.reduce(())
+            // Reduce to obj in format like: { [format]: Array, ...etc }
+            const callAll = (...fns) => (...args) =>
+              fns.reduce((acc, fn) => fn && fn(...args), (x) => x)
+            const xform = callAll(formatReducer, qualitiesReducer)
+            items = items.reduce(xform, {})
+
+            modalElem = modal.getElem()
+
+            function getQuality(str) {
+              return `
+                <strong style="font-style:italic;">${str}</strong>
+              `
+            }
+
+            // for now we will only support mp4
+            const mp4Videos = items.mp4
+
+            if (!mp4Videos) {
+              window.alert('No mp4 items found. Aborting...')
+              return
+            }
+
+            // Higher quality ones to the top
+            const mp4Formats = Object.keys(mp4Videos).reverse()
+
+            const htmlItems = mp4Formats.reduce((acc, format) => {
+              const item = mp4Videos[format][0]
+              return acc.concat(`
+                <div style="padding:12px;display:inline-block">
+                  <div>
+                    <div>
+                      Format: <strong>${item.format}</strong>
+                    </div>
+                    <div>
+                      Quality: ${
+                        Array.isArray(item.quality)
+                          ? item.quality.map(getQuality)
+                          : getQuality(item.quality)
+                      }
+                    </div>
+                    <div>
+                      <a href="${item.videoUrl}" target="_blank">Download</a>
+                    </div>
+                  </div>
+                </div>
+              `)
+            }, '')
+
+            modalElem.html(`
+            <h2 style="color:#fff;font-style:italic;margin:20px 0;">${title}</h2>
+            <div style="padding:12px;width:100%;height:100%">
+              <div style="width:100%;height:100%">
+                <div style="width:100%;height:100%;max-height:500px;overflow:hidden;">
+                  <img src="${thumbnail}" style="width:100%;height:100%;object-fit:cover"></img>
+                </div>
+              </div>
+              <div>
+                ${htmlItems}
+              </div>
+            </div>
+            `)
+            modal.open()
+          }
         },
       })
     }
@@ -119,7 +224,7 @@ chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
 })
 
 const chromez = makeChromez()
-const el = document.createElement('div')
+// const el = document.createElement('div')
 chromez.connect()
 
 // const modal = (function() {
