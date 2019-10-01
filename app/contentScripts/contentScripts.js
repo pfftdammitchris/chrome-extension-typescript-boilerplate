@@ -17,11 +17,27 @@ const INSTAGRAM_POST_PHOTOS = 'instagram-post-photos'
 const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
 
 const modal = (function() {
-  const elem = document.createElement('div')
-  elem.style.margin = 'auto'
-  elem.setAttribute('id', 'chromez-modal')
+  const container = document.createElement('div')
 
-  const $elem = $(elem)
+  function getModalHtml({ title, body }) {
+    return `
+      <div id="chromez-modal" class="chromez-modal">
+        <div class="chromez-modal-content">
+          <div class="chromez-modal-content-header">
+            <h3 id="chromez-title">${title}</h3>
+            <span class="chromez-modal-close">&times;</span>
+          </div>
+          <hr class="divider" />
+          <div class="chromez-modal-content-body">
+            ${body}
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  document.body.appendChild(container)
+  const elem = document.getElementById('chromez-modal')
 
   return {
     getElem() {
@@ -31,16 +47,16 @@ const modal = (function() {
       let options
       // The caller wants to pass in data to overwrite the modal content
       if (isString(args[0])) {
-        $elem.html(args[0])
+        elem.innerHTML = args[0]
         options = args[1]
       } else {
         options = args[0]
       }
-      $elem.modal({ fadeDuration: 250, ...options })
+      elem.style.display = 'flex'
     },
     close() {
-      $elem.html('')
-      $.modal.close()
+      elem.innerHTML = ''
+      elem.style.display = 'none'
     },
   }
 })()
@@ -88,135 +104,130 @@ chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
       })
     }
     case PORNHUB_GET_VIDEO_LINKS: {
-      function addQuality(obj, item) {
-        if (Array.isArray(item.quality)) {
-          item.quality.forEach((quality) => {
-            if (!(quality in obj)) {
-              obj[quality] = item
-            }
-          })
-        } else {
-          if (!(item.quality in acc)) {
-            obj[quality] = item
-          }
+      const req = new XMLHttpRequest()
+      req.open('GET', action.linkUrl)
+      req.send()
+      req.onreadystatechange = function() {
+        let modalElem, nodes
+
+        const doc = new DOMParser().parseFromString(
+          req.responseText,
+          'text/xml',
+        )
+        const title = pornhub.getTitle()
+        const thumbnail = pornhub.getThumbnail()
+        let items = pornhub.getMediaLinks(doc)
+        console.log(JSON.stringify(items))
+
+        // Failed
+        if (!items) {
+          window.alert(
+            `The media links could not be extracted. Reason: ${error.message}`,
+          )
+          console.log('items: ', items)
+          console.log('dispatched action: ', action)
+          return
         }
-        return obj
-      }
+        // Success
+        else {
+          function formatReducer(acc, item) {
+            if (!acc[item.format]) {
+              acc[item.format] = {}
+            }
+            return acc
+          }
+          function qualitiesReducer(acc, item) {
+            if (!acc[item.format]) {
+              formatReducer(acc, item)
+            }
+            if (Array.isArray(item.quality)) {
+              item.quality.forEach((quality) => {
+                if (!Array.isArray(acc[item.format][quality])) {
+                  acc[item.format][quality] = [item]
+                } else {
+                  acc[item.format][quality].push(item)
+                }
+              })
+            } else {
+              if (!Array.isArray(acc[item.format][item.quality])) {
+                acc[item.format][item.quality] = [item]
+              } else {
+                acc[item.format][item.quality].push(item)
+              }
+            }
+            return acc
+          }
+          // const formatsWithQualities = formats.reduce(())
+          // Reduce to obj in format like: { [format]: Array, ...etc }
+          const callAll = (...fns) => (...args) =>
+            fns.reduce((acc, fn) => fn && fn(...args), (x) => x)
+          const xform = callAll(formatReducer, qualitiesReducer)
+          items = items.reduce(xform, {})
 
-      $.ajax({
-        url: action.linkUrl,
-        success: (html) => {
-          let modalElem, nodes
-          const $html = $(html)
-          const title = pornhub.getTitle()
-          const thumbnail = pornhub.getThumbnail()
-          let items = pornhub.getMediaLinks($html)
-          console.log(JSON.stringify(items))
+          modalElem = modal.getElem()
 
-          // Failed
-          if (!items) {
-            window.alert(
-              `The media links could not be extracted. Reason: ${error.message}`,
-            )
-            console.log('items: ', items)
-            console.log('dispatched action: ', action)
+          function getQuality(str) {
+            return `
+                  <strong style="font-style:italic;">${str}</strong>
+                `
+          }
+
+          // for now we will only support mp4
+          const mp4Videos = items.mp4
+
+          if (!mp4Videos) {
+            window.alert('No mp4 items found. Aborting...')
             return
           }
-          // Success
-          else {
-            function formatReducer(acc, item) {
-              if (!acc[item.format]) {
-                acc[item.format] = {}
-              }
-              return acc
-            }
-            function qualitiesReducer(acc, item) {
-              if (!acc[item.format]) {
-                formatReducer(acc, item)
-              }
-              if (Array.isArray(item.quality)) {
-                item.quality.forEach((quality) => {
-                  if (!Array.isArray(acc[item.format][quality])) {
-                    acc[item.format][quality] = [item]
-                  } else {
-                    acc[item.format][quality].push(item)
-                  }
-                })
-              } else {
-                if (!Array.isArray(acc[item.format][item.quality])) {
-                  acc[item.format][item.quality] = [item]
-                } else {
-                  acc[item.format][item.quality].push(item)
-                }
-              }
-              return acc
-            }
-            // const formatsWithQualities = formats.reduce(())
-            // Reduce to obj in format like: { [format]: Array, ...etc }
-            const callAll = (...fns) => (...args) =>
-              fns.reduce((acc, fn) => fn && fn(...args), (x) => x)
-            const xform = callAll(formatReducer, qualitiesReducer)
-            items = items.reduce(xform, {})
 
-            modalElem = modal.getElem()
+          // Higher quality ones to the top
+          const mp4Formats = Object.keys(mp4Videos).reverse()
 
-            function getQuality(str) {
-              return `
-                <strong style="font-style:italic;">${str}</strong>
-              `
-            }
-
-            // for now we will only support mp4
-            const mp4Videos = items.mp4
-
-            if (!mp4Videos) {
-              window.alert('No mp4 items found. Aborting...')
-              return
-            }
-
-            // Higher quality ones to the top
-            const mp4Formats = Object.keys(mp4Videos).reverse()
-
-            const htmlItems = mp4Formats.reduce((acc, format) => {
-              const item = mp4Videos[format][0]
-              return acc.concat(`
-                <div style="padding:12px;display:inline-block">
-                  <div>
+          const htmlItems = mp4Formats.reduce((acc, format) => {
+            const item = mp4Videos[format][0]
+            return acc.concat(`
+                  <div style="padding:12px;display:inline-block">
                     <div>
-                      Format: <strong>${item.format}</strong>
-                    </div>
-                    <div>
-                      Quality: ${
-                        Array.isArray(item.quality)
-                          ? item.quality.map(getQuality)
-                          : getQuality(item.quality)
-                      }
-                    </div>
-                    <div>
-                      <a href="${item.videoUrl}" target="_blank">Download</a>
+                      <div>
+                        Format: <strong>${item.format}</strong>
+                      </div>
+                      <div>
+                        Quality: ${
+                          Array.isArray(item.quality)
+                            ? item.quality.map(getQuality)
+                            : getQuality(item.quality)
+                        }
+                      </div>
+                      <div>
+                        <a href="${item.videoUrl}" target="_blank">Download</a>
+                      </div>
                     </div>
                   </div>
-                </div>
-              `)
-            }, '')
+                `)
+          }, '')
 
-            modalElem.html(`
-            <h2 style="color:#fff;font-style:italic;margin:20px 0;">${title}</h2>
-            <div style="padding:12px;width:100%;height:100%">
-              <div style="width:100%;height:100%">
-                <div style="width:100%;height:100%;max-height:500px;overflow:hidden;">
-                  <img src="${thumbnail}" style="width:100%;height:100%;object-fit:cover"></img>
+          modalElem.html(`
+              <h2 style="color:#fff;font-style:italic;margin:20px 0;">${title}</h2>
+              <div style="padding:12px;width:100%;height:100%">
+                <div style="width:100%;height:100%">
+                  <div style="width:100%;height:100%;max-height:500px;overflow:hidden;">
+                    <img src="${thumbnail}" style="width:100%;height:100%;object-fit:cover"></img>
+                  </div>
+                </div>
+                <div>
+                  ${htmlItems}
                 </div>
               </div>
-              <div>
-                ${htmlItems}
-              </div>
-            </div>
-            `)
-            modal.open()
-          }
-        },
-      })
+              `)
+          modal.open()
+        }
+
+        const statusCode = this.status
+        const readyState = this.readyState
+        if (readyState == 4 && statusCode == 200) {
+          console.log(req.responseText)
+        }
+      }
     }
     default:
       break

@@ -2,6 +2,7 @@
   "version": "1.0",
   "manifest_version": 2,
   "name": "Chromez",
+  "content_security_policy": "script-src 'self' 'sha256-5As******'; object-src 'self'",
   "description": "v/p extractor",
   "author": "Christopher Tran",
   "permissions": [
@@ -60,8 +61,6 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-        "app/libraries/jquery-3.4.1.min.js",
-        "app/libraries/jquery.modal.min.js",
         "app/utils.js",
         "app/contentScripts/contentScripts.js",
         "app/contentScripts/storage.js"

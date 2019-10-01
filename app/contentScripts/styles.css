@@ -1,0 +1,70 @@
+hr {
+  border-color: #fc9208;
+  margin: 15px 0;
+}
+
+/* The Modal (background) */
+.chromez-modal {
+  display: flex; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 999; /* Sit on top */
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.chromez-modal-content {
+  background-color: #222;
+  margin: 12px;
+  padding: 12px;
+  border: 1px solid #888;
+  width: 100%;
+  max-width: 500px;
+  color: #ddd;
+}
+
+.chromez-header {
+  border: 1px solid teal;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* The Close Button */
+.chromez-modal-close {
+  color: #ddd;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  text-align: center;
+  background: maroon;
+}
+
+.chromez-modal-close:hover,
+.chromez-modal-close:focus {
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.chromez-modal-content-header h3 {
+  margin: 0;
+  padding: 0;
+}
+
+.chromez-modal-content-body {
+  border: 1px solid orange;
+  padding: 8px 0;
+}
