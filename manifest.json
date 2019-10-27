@@ -2,7 +2,7 @@
   "version": "1.0",
   "manifest_version": 2,
   "name": "Chromez",
-  "content_security_policy": "script-src 'self' 'sha256-5As******'; object-src 'self'",
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "description": "v/p extractor",
   "author": "Christopher Tran",
   "permissions": [
@@ -44,51 +44,32 @@
   "browser_action": {
     "default_title": "Chromez",
     "default_icon": "app/resources/contextmenu-icon48x48.png",
-    "default_popup": "app/popup/popup.html"
+    "default_popup": "app/popup.html"
   },
   "background": {
-    "scripts": [
-      "app/utils.js",
-      "app/background.js",
-      "app/contextMenus/contextMenus.js",
-      "app/tabs/tabs.js",
-      "app/modules/instagram.js",
-      "app/modules/pornhub.js"
-    ],
+    "scripts": ["app/utils.js", "app/background.js", "app/contextMenus.js"],
     "persistent": false
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "*://*.instagram.com/*",
+        "*://*.pornhub.com/*",
+        "*://*.pornhubpremium.com/*"
+      ],
       "js": [
         "app/utils.js",
+        "app/contentScripts/lib/jquery-3.4.1.min.js",
         "app/contentScripts/contentScripts.js",
-        "app/contentScripts/storage.js"
+        "app/contentScripts/modules/instagram.js",
+        "app/contentScripts/modules/pornhub.js"
       ],
-      "css": [
-        "app/libraries/jquery.modal.min.css",
-        "app/contentScripts/styles.css"
-      ]
-    },
-    {
-      "matches": [
-        "*://www.instagram.com/*",
-        "*://www.pornhub.com/*",
-        "*://www.pornhubpremium.com/*"
-      ],
-      "js": [
-        "app/contentScripts/modules/instagram/instagram.js",
-        "app/contentScripts/modules/pornhub/pornhub.js"
-      ],
-      "css": [
-        "app/contentScripts/modules/instagram/styles.css",
-        "app/contentScripts/modules/pornhub/styles.css"
-      ]
+      "css": ["app/contentScripts/styles.css"]
     }
   ],
-  "options_page": "app/options/options.html",
+  "options_page": "app/options.html",
   "options_ui": {
     "chrome_style": true,
-    "page": "app/options/options.html"
+    "page": "app/options.html"
   }
 }

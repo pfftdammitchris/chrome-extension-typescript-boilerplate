@@ -34,25 +34,25 @@ function createContextMenus(contextMenus) {
  * @param { boolean } checked - (optional) Flag indicating the state of checkbox/radio after it was clicked
  * @return {}
  */
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  console.log(`Context menu onClick info parameter: `, info)
-  console.log(`Context menu onClick tab parameter: `, tab)
-  // instagram.onContextMenuClick(info, tab)
-  getActiveTab((activeTab) => {
-    switch (info.menuItemId) {
-      // INSTAGRAM
-      // Must be on their profile page
-      case 'instagram-post-photos':
-        dispatch(activeTab.id, { type: 'instagram-post-photos', ...info })
-      // PORNHUB
-      // Must be on the video page
-      case 'pornhub-get-video-links':
-        dispatch(activeTab.id, {
-          type: 'pornhub-get-video-links',
-          ...info,
-        })
-      default:
-        break
-    }
-  })
-})
+// chrome.contextMenus.onClicked.addListener((info, tab) => {
+//   console.log(`Context menu onClick info parameter: `, info)
+//   console.log(`Context menu onClick tab parameter: `, tab)
+//   // instagram.onContextMenuClick(info, tab)
+//   getActiveTab((activeTab) => {
+//     switch (info.menuItemId) {
+//       // INSTAGRAM
+//       // Must be on their profile page
+//       case 'instagram-query-post-photos':
+//         dispatch(activeTab.id, { type: 'instagram-query-post-photos', ...info })
+//       // PORNHUB
+//       // Must be on the video page
+//       case 'pornhub-get-video-links':
+//         dispatch(activeTab.id, {
+//           type: 'pornhub-get-video-links',
+//           ...info,
+//         })
+//       default:
+//         break
+//     }
+//   })
+// })

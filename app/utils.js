@@ -28,16 +28,3 @@ function getActiveTab(options, cb) {
     },
   )
 }
-
-// Returns the site like "instagram" or "facebook"
-function getSite(url) {
-  url = new URL(url)
-  switch (url.hostname) {
-    case 'www.instagram.com':
-      return 'instagram'
-    case 'www.pornhub.com':
-      return 'pornhub'
-    default:
-      break
-  }
-}

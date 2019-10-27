@@ -3,47 +3,59 @@
     https://developer.chrome.com/extensions/downloads#method-download
 */
 
-const portApi = (function() {
-  const _store = {}
+function ensureSendMessage(tabId, message, callback) {
+  chrome.tabs.sendMessage(tabId, { type: 'onload' }, function(response) {
+    if (response && response.acknowledged) {
+      chrome.tabs.sendMessage(tabId, message, callback)
+      console.log('The client side has acknowledged!')
+    }
+    // The other end does not have a listener
+    else {
+      chrome.tabs.executeScript(
+        tabId,
+        { file: 'contentScripts/contentScripts.js' },
+        function() {
+          // if (chrome.runtime.lastError) {
+          //   console.error(JSON.stringify(chrome.runtime.lastError, null, 2))
+          //   throw Error('Unable to inject script into tab ' + tabId)
+          // }
+          // It's injected by now and ready
+          chrome.contextMenus.onClicked.addListener((info, tab) => {
+            console.log(`Context menu onClick info parameter: `, info)
+            console.log(`Context menu onClick tab parameter: `, tab)
+            // instagram.onContextMenuClick(info, tab)
+            getActiveTab((activeTab) => {
+              switch (info.menuItemId) {
+                // INSTAGRAM
+                // Must be on their profile page
+                case 'instagram-query-post-photos':
+                  dispatch(activeTab.id, {
+                    type: 'instagram-query-post-photos',
+                    ...info,
+                  })
+                  break
+                // PORNHUB
+                // Must be on the video page
+                case 'pornhub-get-video-links':
+                  dispatch(activeTab.id, {
+                    type: 'pornhub-get-video-links',
+                    ...info,
+                  })
+                  break
+                default:
+                  break
+              }
+            })
+          })
+        },
+      )
+    }
+  })
+}
 
-  const storeHelpers = {
-    get(key) {
-      const args = Array.prototype.slice.call(arguments, 0)
-      // Allow the caller to choose to receive the store if they don't pass anything in
-      if (args.length === 0) {
-        return this
-      }
-      const val = _store[key]
-      if (val) {
-        return val
-      } else {
-        console.warn(
-          `Warning! You tried to retrieve store[${key}] but it was null or undefined`,
-        )
-      }
-    },
-    set(key, value) {
-      if (!key) {
-        return console.warn(
-          `Warning! You tried to set "${key}" on the store but it was not valid`,
-        )
-      } else {
-        _store[key] = value
-      }
-      return this
-    },
-  }
-
-  return {
-    store: storeHelpers,
-  }
-})()
-
-const store = portApi.store
-
-/* -------------------------------------------------------
-  ---- PREPARATION
--------------------------------------------------------- */
+chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+  ensureSendMessage(tabs[0].id, { type: 'onload' })
+})
 
 // Invokes right after the extension gets done being installed on their browser
 chrome.runtime.onInstalled.addListener(() => {
@@ -59,12 +71,12 @@ chrome.runtime.onInstalled.addListener(() => {
   // onClicking these in the UI will send to contextMenu handlers
   const menus = [
     {
-      title: 'View photos',
-      id: 'instagram-post-photos',
+      title: 'Query IG Photos',
+      id: 'instagram-query-post-photos',
       contexts: [...contexts, 'browser_action'],
     },
     {
-      title: 'Get media links',
+      title: 'Query PH Links',
       id: 'pornhub-get-video-links',
       contexts: [...contexts, 'browser_action'],
     },
@@ -74,7 +86,10 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Invoked when we connected to the client side
 chrome.runtime.onConnect.addListener((port) => {
-  //
+  console.log(`%cConnected to port: ${port}`, 'color:green;font-weight:bold;')
+  if (port.name === 'chromez') {
+    port.onMessage.addListener(console.log)
+  }
 })
 
 chrome.runtime.onMessage.addListener((msg) => {

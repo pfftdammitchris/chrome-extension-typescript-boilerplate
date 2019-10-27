@@ -1,55 +1,54 @@
 hr {
-  border-color: #fc9208;
   margin: 15px 0;
 }
 
 /* The Modal (background) */
 .chromez-modal {
-  display: flex; /* Hidden by default */
+  display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
   z-index: 999; /* Sit on top */
+  width: 100%;
+  height: 100%;
   left: 0;
   top: 0;
   right: 0;
   bottom: 0;
-  justify-content: center;
-  align-items: center;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0, 0, 0); /* Fallback color */
-  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+  background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
 }
 
 /* Modal Content */
 .chromez-modal-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: #222;
-  margin: 12px;
-  padding: 12px;
-  border: 1px solid #888;
-  width: 100%;
-  max-width: 500px;
+  border: 1px solid #333;
+  margin: auto;
   color: #ddd;
+  overflow: hidden;
 }
 
-.chromez-header {
-  border: 1px solid teal;
+.chromez-modal-content-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  text-align: center;
+}
+
+.chromez-modal-content-header h2 {
+  flex-grow: 1;
 }
 
 /* The Close Button */
 .chromez-modal-close {
   color: #ddd;
-  float: right;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: bold;
-  width: 30px;
-  height: 30px;
   border-radius: 50%;
-  text-align: center;
-  background: maroon;
+  width: 50px;
 }
 
 .chromez-modal-close:hover,
@@ -59,12 +58,10 @@ hr {
   opacity: 0.6;
 }
 
-.chromez-modal-content-header h3 {
-  margin: 0;
-  padding: 0;
-}
-
 .chromez-modal-content-body {
-  border: 1px solid orange;
+  overflow: hidden;
   padding: 8px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

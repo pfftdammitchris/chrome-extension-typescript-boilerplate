@@ -38,7 +38,8 @@ const pornhub = (function() {
       return items
     },
     getTitle() {
-      return document.getElementById('videoTitle').textContent
+      const titleElem = document.getElementById('videoTitle')
+      return titleElem ? titleElem.textContent : ''
     },
     getThumbnail() {
       return document
