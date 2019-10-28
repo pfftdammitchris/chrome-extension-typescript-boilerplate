@@ -15,37 +15,37 @@ function ensureSendMessage(tabId, message, callback) {
         tabId,
         { file: 'contentScripts/contentScripts.js' },
         function() {
-          // if (chrome.runtime.lastError) {
-          //   console.error(JSON.stringify(chrome.runtime.lastError, null, 2))
-          //   throw Error('Unable to inject script into tab ' + tabId)
-          // }
-          // It's injected by now and ready
           chrome.contextMenus.onClicked.addListener((info, tab) => {
             console.log(`Context menu onClick info parameter: `, info)
             console.log(`Context menu onClick tab parameter: `, tab)
-            // instagram.onContextMenuClick(info, tab)
-            getActiveTab((activeTab) => {
-              switch (info.menuItemId) {
-                // INSTAGRAM
-                // Must be on their profile page
-                case 'instagram-query-post-photos':
-                  dispatch(activeTab.id, {
-                    type: 'instagram-query-post-photos',
-                    ...info,
+            switch (info.menuItemId) {
+              // INSTAGRAM
+              // Must be on their profile page
+              case INSTAGRAM_QUERY_PHOTOS:
+                {
+                  const { linkUrl, menuItemId, pageUrl } = info
+                  const { id, title } = tab
+                  let context
+                  
+                  if ()
+
+                  dispatch(tab.id, {
+                    type: INSTAGRAM_QUERY_PHOTOS,
                   })
-                  break
-                // PORNHUB
-                // Must be on the video page
-                case 'pornhub-get-video-links':
-                  dispatch(activeTab.id, {
-                    type: 'pornhub-get-video-links',
-                    ...info,
-                  })
-                  break
-                default:
-                  break
-              }
-            })
+                }
+
+                break
+              // PORNHUB
+              // Must be on the video page
+              case 'pornhub-get-video-links':
+                dispatch(activeTab.id, {
+                  type: 'pornhub-get-video-links',
+                  ...info,
+                })
+                break
+              default:
+                break
+            }
           })
         },
       )
@@ -72,7 +72,7 @@ chrome.runtime.onInstalled.addListener(() => {
   const menus = [
     {
       title: 'Query IG Photos',
-      id: 'instagram-query-post-photos',
+      id: INSTAGRAM_QUERY_PHOTOS,
       contexts: [...contexts, 'browser_action'],
     },
     {
