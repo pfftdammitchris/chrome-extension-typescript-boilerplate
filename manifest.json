@@ -24,17 +24,17 @@
     "notifications"
   ],
   "commands": {
+    "kink-get-photos": {
+      "suggested_key": {
+        "default": "Alt+Q"
+      },
+      "description": "Opens a modal and shows photos from a video page"
+    },
     "download-instagram-photo": {
       "suggested_key": {
         "default": "Ctrl+Z"
       },
       "description": "Downloads the best quality photo that it can find"
-    },
-    "download-instagram-video": {
-      "suggested_key": {
-        "default": "Ctrl+Z"
-      },
-      "description": "Downloads the best quality video that it can find"
     }
   },
   "icons": {
@@ -47,12 +47,18 @@
     "default_popup": "app/popup.html"
   },
   "background": {
-    "scripts": ["app/utils.js", "app/background.js", "app/contextMenus.js"],
+    "scripts": [
+      "app/utils.js",
+      "app/background.js",
+      "app/commands.js",
+      "app/contextMenus.js"
+    ],
     "persistent": false
   },
   "content_scripts": [
     {
       "matches": [
+        "*://*.kink.com/*",
         "*://*.instagram.com/*",
         "*://*.pornhub.com/*",
         "*://*.pornhubpremium.com/*"

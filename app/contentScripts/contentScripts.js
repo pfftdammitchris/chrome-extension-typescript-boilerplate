@@ -11,8 +11,27 @@
 
 // ACTION TYPE CONSTANTS
 const ONLOAD = 'onload'
+const KINK_GET_PHOTOS = 'kink-get-photos'
 const INSTAGRAM_POST_PHOTOS = 'instagram-query-post-photos'
 const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
+
+// Generates content to render in the modal
+/**
+ * @param { string[] } srcs - Array of base64 data for the "src" attr for <img /> elements
+ * @return { string }
+ */
+function generateGallery(srcs) {
+  let html = ''
+  srcs.forEach((src) => {
+    html += `
+      <div style="width:100%;height:100%;max-width:320px;margin:3px;max-height:350px;">
+        <a href="${src}" target="_blank">
+          <img src="${src}" style="width:100%;height:100%;object-fit:cover;"></img>
+        </a>
+      </div>`
+  })
+  return html
+}
 
 const modal = (function() {
   const chromezModal = document.createElement('div')
@@ -21,9 +40,9 @@ const modal = (function() {
   function getModalHtml({ title, content }) {
     return `
       <div class="chromez-modal-content">
-        <div>
+        <div style="width:100%;height:100%;overflow-y:auto;">
           <div class="chromez-modal-content-header">
-            <h2 class="chromez-title">${title}</h2>
+            <h2>${title}</h2>
             <span class="chromez-modal-close">&times;</span>
           </div>
           <div class="chromez-modal-content-body">
@@ -40,9 +59,7 @@ const modal = (function() {
     getElem() {
       return chromezModal
     },
-    getModalHtml(...args) {
-      return getModalHtml(...args)
-    },
+    getModalHtml,
     open(options) {
       if (options) {
         const { title, content } = options
@@ -78,34 +95,29 @@ chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
   switch (action.type) {
     case ONLOAD:
       chrome.runtime.connect()
-    case INSTAGRAM_POST_PHOTOS:
-      {
-        if (!action.linkUrl) {
-          return window.alert(
-            `You tried to fetch an instagram post's photos but no link was given. Action: ${JSON.stringify(
-              action,
-              null,
-              2,
-            )}`,
-          )
-        }
+      break
+    case KINK_GET_PHOTOS: {
+      const modalElem = modal.getElem()
+      if (modalElem.style.display !== 'none') {
+        modalElem.style.display = 'none'
+      } else {
         $.ajax({
-          url: action.linkUrl,
+          url: action.linkUrl || action.url,
           success: (html) => {
-            const $html = $(html)
-            const { photos } = instagram.user.homepage.getPhotosFromPost($html)
+            const root = $(html)
+            const container = $('#previewImages', root)
+            const imgElems = container.find('div.thumb > a > img')
+            const srcs = []
+            imgElems.each((_, el) => {
+              const src = $(el).attr('src')
+              if (!srcs.includes(src)) {
+                srcs.push(src)
+              }
+            })
             const modalElem = $(modal.getElem())
-            const imgs = photos.map(
-              ({ src }) =>
-                `<div style="display:inline-block;width:350px;margin-bottom:10px;max-height:350px;">
-                  <a href="${src}" target="_blank">
-                    <img src="${src}" width="100%" height="auto" />
-                  </a>
-                </div>`,
-            )
             const containerHtml = modal.getModalHtml({
-              title: 'Photos',
-              content: imgs,
+              title: action.title || 'Photos',
+              content: generateGallery(srcs),
             })
             modalElem.html(containerHtml)
             const closeBtn = document.getElementsByClassName(
@@ -115,20 +127,64 @@ chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
             modal.open()
           },
         })
-        // const xhttp = new XMLHttpRequest()
-        // xhttp.onreadystatechange = function() {
-        //   if (this.readyState == 4 && this.status == 200) {
-        //     const html = this.responseText
-        //     modal.open({
-        //       content: html,
-        //     })
-        //     console.log(html)
-        //   }
-        // }
-        // xhttp.open('GET', action.linkUrl, true)
-        // xhttp.send()
       }
       break
+    }
+    case INSTAGRAM_POST_PHOTOS: {
+      if (!action.linkUrl) {
+        return window.alert(
+          `You tried to fetch an instagram post's photos but no link was given. Action: ${JSON.stringify(
+            action,
+            null,
+            2,
+          )}`,
+        )
+      }
+      $.ajax({
+        url: action.linkUrl,
+        success: (html) => {
+          const $html = $(html)
+          const { photos } = instagram.user.homepage.getPhotosFromPost($html)
+          const modalElem = $(modal.getElem())
+          const srcs = photos.map(({ src }) => src)
+          const containerHtml = modal.getModalHtml({
+            title: 'Photos',
+            content: generateGallery(srcs),
+          })
+          modalElem.html(containerHtml)
+          const closeBtn = document.getElementsByClassName(
+            'chromez-modal-close',
+          )[0]
+          closeBtn.onclick = modal.close
+          modal.open()
+        },
+      })
+      // const xhttp = new XMLHttpRequest()
+      // xhttp.onreadystatechange = function() {
+      //   if (this.readyState == 4 && this.status == 200) {
+      //     const html = this.responseText
+      //     modal.open({
+      //       content: html,
+      //     })
+      //     console.log(html)
+      //   }
+      // }
+      // xhttp.open('GET', action.linkUrl, true)
+      // xhttp.send()
+      break
+    }
+    case 'download-candidcreeps-video': {
+      if (!action.linkUrl) {
+        return window.alert(
+          `You tried to fetch an instagram post's photos but no link was given. Action: ${JSON.stringify(
+            action,
+            null,
+            2,
+          )}`,
+        )
+      }
+      break
+    }
     default:
       break
   }

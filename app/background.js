@@ -3,59 +3,9 @@
     https://developer.chrome.com/extensions/downloads#method-download
 */
 
-function ensureSendMessage(tabId, message, callback) {
-  chrome.tabs.sendMessage(tabId, { type: 'onload' }, function(response) {
-    if (response && response.acknowledged) {
-      chrome.tabs.sendMessage(tabId, message, callback)
-      console.log('The client side has acknowledged!')
-    }
-    // The other end does not have a listener
-    else {
-      chrome.tabs.executeScript(
-        tabId,
-        { file: 'contentScripts/contentScripts.js' },
-        function() {
-          chrome.contextMenus.onClicked.addListener((info, tab) => {
-            console.log(`Context menu onClick info parameter: `, info)
-            console.log(`Context menu onClick tab parameter: `, tab)
-            switch (info.menuItemId) {
-              // INSTAGRAM
-              // Must be on their profile page
-              case INSTAGRAM_QUERY_PHOTOS:
-                {
-                  const { linkUrl, menuItemId, pageUrl } = info
-                  const { id, title } = tab
-                  let context
-                  
-                  if ()
-
-                  dispatch(tab.id, {
-                    type: INSTAGRAM_QUERY_PHOTOS,
-                  })
-                }
-
-                break
-              // PORNHUB
-              // Must be on the video page
-              case 'pornhub-get-video-links':
-                dispatch(activeTab.id, {
-                  type: 'pornhub-get-video-links',
-                  ...info,
-                })
-                break
-              default:
-                break
-            }
-          })
-        },
-      )
-    }
-  })
-}
-
-chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-  ensureSendMessage(tabs[0].id, { type: 'onload' })
-})
+const KINK_GET_PHOTOS = 'kink-get-photos'
+const INSTAGRAM_POST_PHOTOS = 'instagram-query-post-photos'
+const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
 
 // Invokes right after the extension gets done being installed on their browser
 chrome.runtime.onInstalled.addListener(() => {
@@ -71,13 +21,23 @@ chrome.runtime.onInstalled.addListener(() => {
   // onClicking these in the UI will send to contextMenu handlers
   const menus = [
     {
+      title: 'Query K Photos',
+      id: KINK_GET_PHOTOS,
+      contexts: [...contexts, 'browser_action'],
+    },
+    {
       title: 'Query IG Photos',
-      id: INSTAGRAM_QUERY_PHOTOS,
+      id: INSTAGRAM_POST_PHOTOS,
       contexts: [...contexts, 'browser_action'],
     },
     {
       title: 'Query PH Links',
       id: 'pornhub-get-video-links',
+      contexts: [...contexts, 'browser_action'],
+    },
+    {
+      title: 'Query CC',
+      id: 'candidcreeps-get-video',
       contexts: [...contexts, 'browser_action'],
     },
   ]

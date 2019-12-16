@@ -6,18 +6,24 @@
 */
 
 chrome.commands.onCommand.addListener((command) => {
+  // Opens the modal in the UI on a kink.com's video page and displays the video's photos
+  if (command === 'kink-get-photos') {
+    getActiveTab((tab) => {
+      dispatch(tab.id, { type: command, ...tab })
+    })
+  }
   // Send message to client side to display modal
   if (command === 'query-options') {
-    fn.getActiveTab((tab) => {
+    getActiveTab((tab) => {
       Port.init(tab.id)
       Port.postMessage({ query: command })
     })
   }
   // Ctrl + Z
   if (command === 'galleria') {
-    fn.getActiveTab((tab) => {
-      const webSupportsQuery = fn.supportsQuery(tab.url, command)
-      const webApp = fn.getWebApp(tab.url, command)
+    getActiveTab((tab) => {
+      const webSupportsQuery = supportsQuery(tab.url, command)
+      const webApp = getWebApp(tab.url, command)
       if (webSupportsQuery) {
         if (webApp === 'spankbang') {
           spankbang.galleria({ tab })
@@ -45,16 +51,16 @@ chrome.commands.onCommand.addListener((command) => {
   }
   // Ctrl + Space
   if (command === 'snatch-video') {
-    fn.getActiveTab((tab) => {
-      const supportsWeb = fn.supportsQuery(tab.url, command)
+    getActiveTab((tab) => {
+      const supportsWeb = supportsQuery(tab.url, command)
       if (supportsWeb) {
-        const web = fn.getWebApp(tab.url)
+        const web = getWebApp(tab.url)
         if (web) {
           let body
           Port.postMessage(
             { query: 'get-html', selector: '#container' },
             (html) => {
-              const elem = fn.htmlToNode(html)
+              const elem = htmlToNode(html)
               const newBodyElem = document.createElement('body')
               newBodyElem.appendChild(elem)
               document.body = newBodyElem
@@ -78,6 +84,16 @@ chrome.commands.onCommand.addListener((command) => {
           },
         })
       }
+    })
+  }
+  // Shift + D
+  if (command === 'download-candidcreeps-video') {
+    getActiveTab((tab) => {
+      Port.postMessage({ query: 'download-candidcreeps-video' }, function(
+        html,
+      ) {
+        console.log(html)
+      })
     })
   }
 })
