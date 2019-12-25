@@ -4,13 +4,13 @@
 
 function createContextMenus(contextMenus) {
   if (isArray(contextMenus)) {
-    contextMenus.forEach((contextMenu) =>
-      chrome.contextMenus.create(contextMenu),
-    )
+    contextMenus.forEach(contextMenu =>
+      chrome.contextMenus.create(contextMenu)
+    );
   }
   // We will assume that contextMenus is just a single context menu object
   else if (contextMenus) {
-    chrome.contextMenus.create(contextMenus)
+    chrome.contextMenus.create(contextMenus);
   }
 }
 
@@ -35,31 +35,41 @@ function createContextMenus(contextMenus) {
  * @return {}
  */
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  console.log(`Context menu onClick info parameter: `, info)
-  console.log(`Context menu onClick tab parameter: `, tab)
+  console.log(`Context menu onClick info parameter: `, info);
+  console.log(`Context menu onClick tab parameter: `, tab);
   // instagram.onContextMenuClick(info, tab)
-  getActiveTab((activeTab) => {
+  getActiveTab(activeTab => {
     switch (info.menuItemId) {
+      case "megapreview-get-page-photos":
+        return dispatch(activeTab.id, {
+          type: "megapreview-get-page-photos",
+          ...info
+        });
       // KINK.com
       // Must be viewing a video's page (ex: kink.com/shoot/44191)
-      case 'kink-get-photos':
-        return dispatch(activeTab.id, { type: 'kink-get-photos', ...info })
+      case "kink-get-photos":
+        return dispatch(activeTab.id, { type: "kink-get-photos", ...info });
       // INSTAGRAM
       // Must be on their profile page
-      case 'instagram-query-post-photos':
+      case "instagram-query-post-photos":
         return dispatch(activeTab.id, {
-          type: 'instagram-query-post-photos',
-          ...info,
-        })
+          type: "instagram-query-post-photos",
+          ...info
+        });
       // PORNHUB
       // Must be on the video page
-      case 'pornhub-get-video-links':
+      case "pornhub-get-video-links":
         return dispatch(activeTab.id, {
-          type: 'pornhub-get-video-links',
-          ...info,
-        })
+          type: "pornhub-get-video-links",
+          ...info
+        });
+      case "pornhub-playlist-videos-page-query":
+        return dispatch(activeTab.id, {
+          type: "pornhub-playlist-videos-page-query",
+          ...info
+        });
       default:
-        break
+        break;
     }
-  })
-})
+  });
+});

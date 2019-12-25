@@ -65,7 +65,6 @@
       ],
       "js": [
         "app/utils.js",
-        "app/contentScripts/lib/jquery-3.4.1.min.js",
         "app/contentScripts/contentScripts.js",
         "app/contentScripts/modules/instagram.js",
         "app/contentScripts/modules/pornhub.js"

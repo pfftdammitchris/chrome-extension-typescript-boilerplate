@@ -1,0 +1,24 @@
+{
+  "name": "chromez",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pfftdammitchris/chromez.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pfftdammitchris/chromez/issues"
+  },
+  "homepage": "https://github.com/pfftdammitchris/chromez#readme",
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.19.1",
+    "prettier": "^1.19.1"
+  }
+}

@@ -11,9 +11,6 @@
 
 // ACTION TYPE CONSTANTS
 const ONLOAD = 'onload'
-const KINK_GET_PHOTOS = 'kink-get-photos'
-const INSTAGRAM_POST_PHOTOS = 'instagram-query-post-photos'
-const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
 
 // Generates content to render in the modal
 /**
@@ -77,6 +74,318 @@ const modal = (function() {
   }
 })()
 
+const ph = (function() {
+  const _store = {
+    playlist: {
+      page: {},
+    },
+  }
+
+  return {
+    playlist: {
+      // Utilities for working on ph playlist pages
+      // Example link: https://pornhubpremium.com/playlist/22453871
+      page: {
+        // pageObj = { hiddenElems, visibleElems }
+        // options = { elem, minDuration, maxDuration, value }
+        addHiddenElem(id, pageObj, options) {
+          if (pageObj) {
+            const { hiddenElems, visibleElems } = pageObj
+            // Remove from visible elems if its in there
+            if (visibleElems.ids.includes(id)) {
+              const index = visibleElems.ids.indexOf(id)
+              visibleElems.ids.splice(index, 1)
+            }
+            if (id in visibleElems.items) {
+              delete visibleElems.items[id]
+            }
+            if (!hiddenElems.ids.includes(id)) {
+              hiddenElems.ids.push(id)
+            }
+            if (!(id in hiddenElems.items)) {
+              hiddenElems.items[id] = this.createPageObjElemObj(options)
+            }
+          } else {
+            console.error(
+              'No page object! Please create a page object and pass it as arguments',
+            )
+          }
+        },
+        // pageObj = { hiddenElems, visibleElems }
+        // options = { elem, minDuration, maxDuration, value }
+        addVisibleElem(id, pageObj, options) {
+          if (pageObj) {
+            const { hiddenElems, visibleElems } = pageObj
+            // Remove from hidden elems if its in there
+            if (hiddenElems.ids.includes(id)) {
+              const index = hiddenElems.ids.indexOf(id)
+              hiddenElems.ids.splice(index, 1)
+            }
+            if (id in hiddenElems.items) {
+              delete hiddenElems.items[id]
+            }
+            if (!visibleElems.ids.includes(id)) {
+              visibleElems.ids.push(id)
+            }
+            if (!(id in visibleElems.items)) {
+              visibleElems.items[id] = this.createPageObjElemObj(options)
+            }
+          } else {
+            console.error(
+              'No page object! Please create a page object and pass it as arguments',
+            )
+          }
+        },
+        createPageObj() {
+          return {
+            hiddenElems: { ids: [], items: {} },
+            visibleElems: { ids: [], items: {} },
+          }
+        },
+        createPageObjElemObj(options) {
+          return {
+            elem: options.elem,
+            details: options.details,
+            ...options,
+          }
+        },
+        filter(type, options = {}) {
+          switch (type) {
+            case 'duration': {
+              const { pageUrl, linkUrl = pageUrl } = options
+              if (linkUrl) {
+                if (!(linkUrl in _store.playlist.page)) {
+                  _store.playlist.page[linkUrl] = this.createPageObj()
+                }
+                return this.filterDuration(
+                  _store.playlist.page[linkUrl],
+                  options,
+                )
+              } else {
+                console.error('No link URL was found!')
+              }
+            }
+            default:
+              break
+          }
+        },
+        filterDuration(pageObj, options) {
+          // setup
+          if (!document.getElementById('view-display-status')) {
+            const overlay = document.createElement('div')
+            overlay.id = 'chromez-overlay'
+            overlay.style.position = 'fixed'
+            overlay.style.top = '0'
+            overlay.style.right = '0'
+            overlay.style.bottom = '0'
+            overlay.style.left = '0'
+            overlay.style.overflow = 'hidden'
+            overlay.style.zIndex = '1'
+            overlay.style.pointerEvents = 'none'
+
+            const stat = document.createElement('div')
+            stat.id = 'chromez-overlay-stat'
+            stat.style.height = '100%'
+            stat.style.display = 'flex'
+            stat.style.justifyContent = 'flex-end'
+            stat.style.alignItems = 'center'
+
+            overlay.appendChild(stat)
+            document.body.appendChild(overlay)
+
+            displayStatus(stat)
+          }
+          function displayStatus(elem) {
+            if (elem) {
+              elem.innerHTML = `
+              <div style="padding:12px;position:relative;z-index:1;">
+                <div>Hidden: ${pageObj.hiddenElems.ids.length}</div>
+                <div>Visible: ${pageObj.visibleElems.ids.length}</div>
+                <div id="view-display-status" style="cursor:pointer;position:relative;z-index:99999">View</div>
+              </div>
+            `
+            }
+          }
+          displayStatus(document.getElementById('chromez-overlay-stat'))
+          const {
+            duration: { min: minDuration, max: maxDuration },
+          } = options
+
+          const videoPlaylist = document.getElementById('videoPlaylist')
+          const liElemsList = videoPlaylist.querySelectorAll('li')
+
+          for (let index = 0; index < liElemsList.length; index++) {
+            const liElem = liElemsList[index]
+            processItem(liElem)
+          }
+
+          // URL of tab should be this shape: https://pornhubpremium.com/playlist/${playlistId}
+          function processItem(liElem) {
+            let id,
+              vkey,
+              href,
+              url,
+              relatedUrl,
+              title,
+              duration,
+              quality,
+              profile = {},
+              views,
+              upvotes,
+              dateAdded,
+              src,
+              thumbUrl
+
+            if (!liElem) return
+
+            id = liElem.dataset.id
+            vkey = liElem.getAttribute('_vkey')
+
+            const anchorEl = liElem.querySelector('a')
+
+            if (anchorEl) {
+              href = anchorEl.getAttribute('href')
+            }
+
+            const thumbInfoWrapperEl = document.querySelector(
+              'div.thumbnail-info-wrapper',
+            )
+
+            if (thumbInfoWrapperEl) {
+              const titleEl = thumbInfoWrapperEl.querySelector('.title')
+
+              if (titleEl) {
+                const linkEl = titleEl.querySelector('a')
+                if (linkEl) {
+                  url = linkEl.getAttribute('href')
+                }
+              }
+
+              const uploaderBlockEl = thumbInfoWrapperEl.querySelector(
+                'div.videoUploaderBlock',
+              )
+
+              const usernameEl = uploaderBlockEl.querySelector(
+                'div.usernameWrap',
+              )
+
+              if (usernameEl) {
+                const userAnchorEl = usernameEl.querySelector('a')
+                if (userAnchorEl) {
+                  profile = {
+                    username: userAnchorEl.innerText,
+                    url: userAnchorEl.getAttribute('href'),
+                  }
+                }
+              }
+
+              const detailsBlock = thumbInfoWrapperEl.lastElementChild
+
+              if (detailsBlock) {
+                const viewsEl = detailsBlock.firstElementChild
+                if (viewsEl) views = viewsEl.innerText
+                const ratingsEl = viewsEl && viewsEl.nextElementSibling
+                if (ratingsEl) {
+                  const upvotesEl = ratingsEl.querySelector('div.value')
+                  if (upvotesEl) {
+                    upvotes = upvotesEl.innerText
+                  }
+                }
+                const addedEl = detailsBlock.lastElementChild
+                if (addedEl) dateAdded = addedEl.innerText
+              }
+            }
+
+            const phImageEl = liElem.querySelector('div.phimage')
+
+            if (phImageEl) {
+              const qualityEl = phImageEl.getElementsByClassName(
+                'hd-thumbnail',
+              )[0]
+
+              if (qualityEl) {
+                quality = qualityEl.innerText
+              }
+
+              const anchorElem = phImageEl.querySelector('a.linkVideoThumb')
+
+              if (anchorElem) {
+                title = anchorElem.dataset.title
+                relatedUrl = anchorElem.dataset.relatedUrl
+              }
+
+              const imgEl = phImageEl.querySelector('img')
+              if (url) {
+                src = imgEl.getAttribute('src')
+                thumbUrl = imgEl.dataset.thumb_url
+              }
+            }
+
+            const details = {
+              id,
+              vkey,
+              href,
+              relatedUrl,
+              title,
+              duration,
+              quality,
+              profile,
+              views,
+              upvotes,
+              dateAdded,
+              src,
+              thumbUrl,
+            }
+
+            const durationEl = phImageEl.getElementsByClassName('duration')[0]
+
+            if (durationEl) {
+              if (durationEl.innerText) {
+                let result = durationEl.innerText.split(':')[0]
+                if (result) {
+                  result = Number(result)
+
+                  // TODO: add an option for querying here
+                  if (typeof result === 'number') {
+                    const pageObjElemObj = ph.playlist.page.createPageObjElemObj(
+                      { elem: liElem, details },
+                    )
+                    // Add to hidden elems
+                    if (result <= minDuration) {
+                      ph.playlist.page.addHiddenElem(
+                        id,
+                        pageObj,
+                        pageObjElemObj,
+                      )
+                      liElem.parentNode.removeChild(liElem)
+                    }
+                    // Add to visible elems
+                    else {
+                      ph.playlist.page.addVisibleElem(
+                        id,
+                        pageObj,
+                        pageObjElemObj,
+                      )
+                    }
+                  }
+                }
+                duration = durationEl.innerText
+              }
+            }
+            return details
+          }
+        },
+        getHiddenElems(linkUrl) {
+          return _store.playlist.page[linkUrl].hiddenElems
+        },
+        getVisibleElems(linkUrl) {
+          return _store.playlist.page[linkUrl].visibleElems
+        },
+      },
+    },
+  }
+})()
+
 chrome.runtime.onConnect.addListener((port) => {
   console.log('%cWe are connected to the background!', 'color:green;')
   port.onMessage.addListener((msg) => {
@@ -96,101 +405,163 @@ chrome.runtime.onMessage.addListener((action, sender, sendResponse) => {
     case ONLOAD:
       chrome.runtime.connect()
       break
-    case KINK_GET_PHOTOS: {
-      const modalElem = modal.getElem()
-      if (modalElem.style.display !== 'none') {
-        modalElem.style.display = 'none'
-      } else {
-        $.ajax({
-          url: action.linkUrl || action.url,
-          success: (html) => {
-            const root = $(html)
-            const container = $('#previewImages', root)
-            const imgElems = container.find('div.thumb > a > img')
-            const srcs = []
-            imgElems.each((_, el) => {
-              const src = $(el).attr('src')
-              if (!srcs.includes(src)) {
-                srcs.push(src)
-              }
-            })
-            const modalElem = $(modal.getElem())
-            const containerHtml = modal.getModalHtml({
-              title: action.title || 'Photos',
-              content: generateGallery(srcs),
-            })
-            modalElem.html(containerHtml)
-            const closeBtn = document.getElementsByClassName(
-              'chromez-modal-close',
-            )[0]
-            closeBtn.onclick = modal.close
-            modal.open()
-          },
-        })
+    case 'pornhub-playlist-videos-page-query': {
+      const options = {
+        ...action,
+        duration: { min: 10, max: null },
+      }
+
+      const onStart = () => ph.playlist.page.filter('duration', options)
+
+      onStart()
+      registerListeners()
+
+      function registerListeners() {
+        window.removeEventListener('scroll', onStart)
+        window.addEventListener('scroll', onStart)
       }
       break
     }
-    case INSTAGRAM_POST_PHOTOS: {
-      if (!action.linkUrl) {
-        return window.alert(
-          `You tried to fetch an instagram post's photos but no link was given. Action: ${JSON.stringify(
-            action,
-            null,
-            2,
-          )}`,
-        )
-      }
-      $.ajax({
-        url: action.linkUrl,
-        success: (html) => {
-          const $html = $(html)
-          const { photos } = instagram.user.homepage.getPhotosFromPost($html)
-          const modalElem = $(modal.getElem())
-          const srcs = photos.map(({ src }) => src)
-          const containerHtml = modal.getModalHtml({
-            title: 'Photos',
-            content: generateGallery(srcs),
-          })
-          modalElem.html(containerHtml)
-          const closeBtn = document.getElementsByClassName(
-            'chromez-modal-close',
-          )[0]
-          closeBtn.onclick = modal.close
-          modal.open()
-        },
-      })
-      // const xhttp = new XMLHttpRequest()
-      // xhttp.onreadystatechange = function() {
-      //   if (this.readyState == 4 && this.status == 200) {
-      //     const html = this.responseText
-      //     modal.open({
-      //       content: html,
-      //     })
-      //     console.log(html)
-      //   }
-      // }
-      // xhttp.open('GET', action.linkUrl, true)
-      // xhttp.send()
-      break
-    }
-    case 'download-candidcreeps-video': {
-      if (!action.linkUrl) {
-        return window.alert(
-          `You tried to fetch an instagram post's photos but no link was given. Action: ${JSON.stringify(
-            action,
-            null,
-            2,
-          )}`,
-        )
-      }
-      break
-    }
+    // case 'megapreview-get-page-photos': {
+    //   const modalElem = modal.getElem();
+    //   if (modalElem.style.display !== "none") {
+    //     modalElem.style.display = "none";
+    //   } else {
+    //     $.ajax({
+    //       url: action.linkUrl || action.url,
+    //       success: html => {
+    //         const $html = $(html);
+    //         const container = $(".megaList-content", $html);
+    //         console.log(container);
+
+    //         const items = [];
+    //         const srcs = [];
+    //         $(container)
+    //           .find("a")
+    //           .each((index, elem) => {
+    //             const $elem = $(elem);
+    //             const src = $elem.find("img").attr("src");
+    //             const duration = $(".video-thumb-details > span", $elem).text();
+    //             const title = $(".file-block-title").text();
+    //             srcs.push(src);
+    //             items.push({
+    //               src,
+    //               duration,
+    //               title
+    //             });
+    //           });
+    //         console.log(items);
+    //         const modalElem = $(modal.getElem());
+    //         const containerHtml = modal.getModalHtml({
+    //           title: action.title || "Photos",
+    //           content: generateGallery(srcs)
+    //         });
+    //         modalElem.html(containerHtml);
+    //         const closeBtn = document.getElementsByClassName(
+    //           "chromez-modal-close"
+    //         )[0];
+    //         closeBtn.onclick = modal.close;
+    //         modal.open();
+    //       }
+    //     });
+    //   }
+    //   break;
+    // }
+    //   const modalElem = modal.getElem();
+    //   if (modalElem.style.display !== "none") {
+    //     modalElem.style.display = "none";
+    //   } else {
+    //     $.ajax({
+    //       url: action.linkUrl || action.url,
+    //       success: html => {
+    //         const root = $(html);
+    //         const container = $("#previewImages", root);
+    //         const imgElems = container.find("div.thumb > a > img");
+    //         const srcs = [];
+    //         imgElems.each((_, el) => {
+    //           const src = $(el).attr("src");
+    //           if (!srcs.includes(src)) {
+    //             srcs.push(src);
+    //           }
+    //         });
+    //         const modalElem = $(modal.getElem());
+    //         const containerHtml = modal.getModalHtml({
+    //           title: action.title || "Photos",
+    //           content: generateGallery(srcs)
+    //         });
+    //         modalElem.html(containerHtml);
+    //         const closeBtn = document.getElementsByClassName(
+    //           "chromez-modal-close"
+    //         )[0];
+    //         closeBtn.onclick = modal.close;
+    //         modal.open();
+    //       }
+    //     });
+    //   }
+    //   break;
+    // }
+    // case 'instagram-query-post-photos': {
+    //   if (!action.linkUrl) {
+    //     return window.alert(
+    //       `You tried to fetch an instagram post's photos but no link was given. Action: ${JSON.stringify(
+    //         action,
+    //         null,
+    //         2
+    //       )}`
+    //     );
+    //   }
+    //   $.ajax({
+    //     url: action.linkUrl,
+    //     success: html => {
+    //       const $html = $(html);
+    //       const { photos } = instagram.user.homepage.getPhotosFromPost($html);
+    //       const modalElem = $(modal.getElem());
+    //       const srcs = photos.map(({ src }) => src);
+    //       const containerHtml = modal.getModalHtml({
+    //         title: "Photos",
+    //         content: generateGallery(srcs)
+    //       });
+    //       modalElem.html(containerHtml);
+    //       const closeBtn = document.getElementsByClassName(
+    //         "chromez-modal-close"
+    //       )[0];
+    //       closeBtn.onclick = modal.close;
+    //       modal.open();
+    //     }
+    //   });
+    //   // const xhttp = new XMLHttpRequest()
+    //   // xhttp.onreadystatechange = function() {
+    //   //   if (this.readyState == 4 && this.status == 200) {
+    //   //     const html = this.responseText
+    //   //     modal.open({
+    //   //       content: html,
+    //   //     })
+    //   //     console.log(html)
+    //   //   }
+    //   // }
+    //   // xhttp.open('GET', action.linkUrl, true)
+    //   // xhttp.send()
+    //   break;
+    // }
+    // case "download-candidcreeps-video": {
+    //   if (!action.linkUrl) {
+    //     return window.alert(
+    //       `You tried to fetch an instagram post's photos but no link was given. Action: ${JSON.stringify(
+    //         action,
+    //         null,
+    //         2
+    //       )}`
+    //     );
+    //   }
+    //   break;
+    // }
+
     default:
       break
   }
 })
 
-// case PORNHUB_GET_VIDEO_LINKS: {
+// case 'pornhub-get-video-links': {
 //   const req = new XMLHttpRequest()
 
 //   req.onreadystatechange = function() {

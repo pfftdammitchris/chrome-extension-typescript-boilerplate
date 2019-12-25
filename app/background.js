@@ -3,6 +3,7 @@
     https://developer.chrome.com/extensions/downloads#method-download
 */
 
+const MEGAPREVIEW_PAGE_PHOTOS = 'megapreview-get-page-photos'
 const KINK_GET_PHOTOS = 'kink-get-photos'
 const INSTAGRAM_POST_PHOTOS = 'instagram-query-post-photos'
 const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
@@ -21,6 +22,11 @@ chrome.runtime.onInstalled.addListener(() => {
   // onClicking these in the UI will send to contextMenu handlers
   const menus = [
     {
+      title: 'Display thumbnails',
+      id: MEGAPREVIEW_PAGE_PHOTOS,
+      contexts: [...contexts, 'browser_action'],
+    },
+    {
       title: 'Query K Photos',
       id: KINK_GET_PHOTOS,
       contexts: [...contexts, 'browser_action'],
@@ -33,6 +39,11 @@ chrome.runtime.onInstalled.addListener(() => {
     {
       title: 'Query PH Links',
       id: 'pornhub-get-video-links',
+      contexts: [...contexts, 'browser_action'],
+    },
+    {
+      title: 'Query PH Playlist Links',
+      id: 'pornhub-playlist-videos-page-query',
       contexts: [...contexts, 'browser_action'],
     },
     {
