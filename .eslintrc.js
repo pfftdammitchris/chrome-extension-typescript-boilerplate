@@ -1,19 +1,37 @@
 module.exports = {
   env: {
     browser: true,
-    es6: true,
+    jest: true,
+    webextensions: true,
   },
-  extends: ['plugin:prettier/recommended'],
+  extends: [
+    'airbnb',
+    'prettier',
+    'prettier/@typescript-eslint',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:import/typescript',
+    'plugin:prettier/recommended',
+  ],
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
     chrome: 'readonly',
   },
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2018,
+    project: './tsconfig.json',
   },
-  plugins: ['prettier'],
+  plugins: ['@typescript-eslint', 'prettier'],
   rules: {
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/indent': 'off',
+    '@typescript-eslint/explicit-member-accessibility': 'off',
+    '@typescript-eslint/member-delimiter-style': 'off',
+    '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/camelcase': 'off',
+    '@typescript-eslint/prefer-interface': 'off',
+    '@typescript-eslint/ban-ts-ignore': 'off',
     'arrow-parens': [2, 'always'],
     'arrow-body-style': 0,
     'consistent-return': 0,
@@ -85,5 +103,12 @@ module.exports = {
     'space-infix-ops': 0,
     'space-unary-ops': 0,
     'space-before-function-paren': 0,
+  },
+  settings: {
+    'import/resolver': {
+      node: {
+        moduleDirectory: ['node_modules', 'src'],
+      },
+    },
   },
 }

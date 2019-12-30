@@ -3,10 +3,10 @@
     https://developer.chrome.com/extensions/downloads#method-download
 */
 
-const MEGAPREVIEW_PAGE_PHOTOS = 'megapreview-get-page-photos'
-const KINK_GET_PHOTOS = 'kink-get-photos'
-const INSTAGRAM_POST_PHOTOS = 'instagram-query-post-photos'
-const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
+export const MEGAPREVIEW_PAGE_PHOTOS = 'megapreview-get-page-photos'
+export const KINK_GET_PHOTOS = 'kink-get-photos'
+export const INSTAGRAM_POST_PHOTOS = 'instagram-query-post-photos'
+export const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
 
 // Invokes right after the extension gets done being installed on their browser
 chrome.runtime.onInstalled.addListener(() => {

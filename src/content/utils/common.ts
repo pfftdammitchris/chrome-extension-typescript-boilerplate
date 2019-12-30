@@ -1,4 +1,4 @@
-function isUndefined(v) {
+function isUndefined(v: any) {
   return typeof v === 'undefined'
 }
 function isString(v) {

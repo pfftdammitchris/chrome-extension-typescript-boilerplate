@@ -124,3 +124,5 @@ const instagram = (function() {
     },
   }
 })()
+
+export default instagram

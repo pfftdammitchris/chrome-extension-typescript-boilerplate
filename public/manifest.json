@@ -37,8 +37,8 @@
     }
   },
   "icons": {
-    "16": "resources/contextmenu-icon.png",
-    "48": "resources/contextmenu-icon48x48.png"
+    "16": "contextmenu-icon.png",
+    "48": "contextmenu-icon48x48.png"
   },
   "background": {
     "scripts": ["background.js"],
@@ -51,11 +51,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": [
-        "/static/js/content.js",
-        "/static/js/main.chunk.js",
-        "/static/js/2.chunk.js"
-      ]
+      "js": [ "index.js"]
     }
   ],
   "options_page": "options.html",

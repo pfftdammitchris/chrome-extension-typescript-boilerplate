@@ -17,6 +17,7 @@ const ONLOAD = 'onload'
  * @param { string[] } srcs - Array of base64 data for the "src" attr for <img /> elements
  * @return { string }
  */
+
 function generateGallery(srcs) {
   let html = ''
   srcs.forEach((src) => {

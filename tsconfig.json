@@ -1,0 +1,29 @@
+{
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build", "public"],
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "baseUrl": "src",
+    "composite": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "lib": ["es5", "es6", "es7", "dom"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "rootDirs": ["src"],
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "strict": true,
+    "target": "es5",
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": false
+  },
+  "paths": {}
+}
