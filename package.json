@@ -1,5 +1,5 @@
 {
-  "name": "chromez",
+  "name": "chrome-extension-typescript-boilerplate",
   "version": "1.0.1",
   "description": "",
   "scripts": {
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pfftdammitchris/chromez.git"
+    "url": "git+https://github.com/pfftdammitchris/chrome-extension-typescript-boilerplate.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/pfftdammitchris/chromez/issues"
+    "url": "https://github.com/pfftdammitchris/chrome-extension-typescript-boilerplate/issues"
   },
-  "homepage": "https://github.com/pfftdammitchris/chromez#readme",
+  "homepage": "https://github.com/pfftdammitchris/chrome-extension-typescript-boilerplate#readme",
   "devDependencies": {
     "@types/node": "^13.1.1",
     "@typescript-eslint/eslint-plugin": "^2.13.0",

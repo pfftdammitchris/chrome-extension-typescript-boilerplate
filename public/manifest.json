@@ -1,39 +1,16 @@
 {
   "version": "1.0.1",
   "manifest_version": 2,
-  "name": "Chromez",
+  "name": "TypeScript/JavaScript Chrome Extension Boilerplate",
   "content_security_policy": "script-src 'self' 'sha256-xr+HqUtnq8KF3IBn+TQ37Vz0elxg11bPYmNJy5M/p38='; object-src 'self'",
-  "author": "Christopher Tran",
-  "permissions": [
-    "activeTab",
-    "tabs",
-    "bookmarks",
-    "unlimitedStorage",
-    "clipboardRead",
-    "clipboardWrite",
-    "contextMenus",
-    "downloads",
-    "history",
-    "management",
-    "commands",
-    "browsingData",
-    "sessions",
-    "storage",
-    "nativeMessaging",
-    "notifications"
-  ],
+  "author": "pfftdammitchris",
+  "permissions": ["activeTab", "tabs", "contextMenus", "commands"],
   "commands": {
-    "download-instagram-photo": {
+    "my_custom_command": {
       "suggested_key": {
-        "default": "Ctrl+Z"
+        "default": "Alt+Q"
       },
-      "description": "Downloads the best quality photo that it can find"
-    },
-    "youtube_open_modal": {
-      "suggested_key": {
-        "default": "Ctrl+Q"
-      },
-      "description": "Opens a modal to configure options"
+      "description": "My custom command's description"
     }
   },
   "icons": {
@@ -45,13 +22,13 @@
     "persistent": false
   },
   "browser_action": {
-    "default_title": "Chromez",
+    "default_title": "browser action title",
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": [ "index.js"]
+      "js": ["index.js"]
     }
   ],
   "options_page": "options.html",

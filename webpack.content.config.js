@@ -2,7 +2,7 @@ const path = require('path')
 
 module.exports = [
   {
-    entry: './src/content/index.ts',
+    entry: './src/content/content.ts',
     output: {
       filename: 'index.js',
       path: path.resolve(__dirname, 'build'),
@@ -28,6 +28,7 @@ module.exports = [
     plugins: [],
     resolve: {
       extensions: ['.ts', '.js'],
+      modules: ['node_modules', path.resolve(__dirname, 'src')]
     },
   },
 ]

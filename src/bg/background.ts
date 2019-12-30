@@ -3,10 +3,9 @@
     https://developer.chrome.com/extensions/downloads#method-download
 */
 
-export const MEGAPREVIEW_PAGE_PHOTOS = 'megapreview-get-page-photos'
-export const KINK_GET_PHOTOS = 'kink-get-photos'
-export const INSTAGRAM_POST_PHOTOS = 'instagram-query-post-photos'
-export const PORNHUB_GET_VIDEO_LINKS = 'pornhub-get-video-links'
+import * as c from '../constants'
+import './commands'
+import './contextMenus'
 
 // Invokes right after the extension gets done being installed on their browser
 chrome.runtime.onInstalled.addListener(() => {
@@ -22,48 +21,15 @@ chrome.runtime.onInstalled.addListener(() => {
   // onClicking these in the UI will send to contextMenu handlers
   const menus = [
     {
-      title: 'Display thumbnails',
-      id: MEGAPREVIEW_PAGE_PHOTOS,
-      contexts: [...contexts, 'browser_action'],
-    },
-    {
-      title: 'Query K Photos',
-      id: KINK_GET_PHOTOS,
-      contexts: [...contexts, 'browser_action'],
-    },
-    {
-      title: 'Query IG Photos',
-      id: INSTAGRAM_POST_PHOTOS,
-      contexts: [...contexts, 'browser_action'],
-    },
-    {
-      title: 'Query PH Links',
-      id: 'pornhub-get-video-links',
-      contexts: [...contexts, 'browser_action'],
-    },
-    {
-      title: 'Query PH Playlist Links',
-      id: 'pornhub-playlist-videos-page-query',
-      contexts: [...contexts, 'browser_action'],
-    },
-    {
-      title: 'Query CC',
-      id: 'candidcreeps-get-video',
+      title: 'My context menu item',
+      id: c.MY_CONTEXT_MENU_ITEM,
       contexts: [...contexts, 'browser_action'],
     },
   ]
-  createContextMenus(menus)
+  menus.forEach((menu) => chrome.contextMenus.create(menu))
 })
 
-// Invoked when we connected to the client side
-chrome.runtime.onConnect.addListener((port) => {
-  console.log(`%cConnected to port: ${port}`, 'color:green;font-weight:bold;')
-  if (port.name === 'chromez') {
-    port.onMessage.addListener(console.log)
-  }
-})
-
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg: string) => {
   console.log(msg)
 })
 
@@ -71,12 +37,6 @@ chrome.runtime.onMessage.addListener((msg) => {
   ---- ICONS
 -------------------------------------------------------- */
 
-chrome.browserAction.onClicked.addListener((tab) => {
+chrome.browserAction.onClicked.addListener((tab: any) => {
   console.log(`Browser action icon clicked. Here is the tab: ${tab}`)
 })
-
-function dispatch(tabId, { type, ...args } = {}) {
-  return chrome.tabs.sendMessage(tabId, { type, ...args }, (response) => {
-    console.log('Response received: ', response)
-  })
-}
